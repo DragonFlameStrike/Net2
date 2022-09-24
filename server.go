@@ -15,6 +15,7 @@ func handleConnection(c net.Conn) {
 	var file *os.File
 	reader := bufio.NewReader(c)
 	start := time.Now()
+	write := 0
 	timePoint := time.Now()
 	var totalWrite float64
 	defer file.Close()
@@ -36,15 +37,17 @@ func handleConnection(c net.Conn) {
 		}
 		writeNow, err := file.Write([]byte(append(netData, []byte("\n")...)))
 		totalWrite += float64(writeNow)
+		write += writeNow
 		if err != nil {
 			log.Fatal(err)
 			return
 		}
 		duration := time.Since(timePoint).Seconds()
 		if duration > 3 {
-			fmt.Printf("Current speed %.1f Mbyte/sec\n", (float64(writeNow)/duration)/(1024*1024))
+			fmt.Printf("Current speed %.1f Mbyte/sec\n", (float64(write)/duration)/(1024*1024))
 			fmt.Printf("Average speed %.1f Mbyte/sec\n", totalWrite/time.Since(start).Seconds()/(1024*1024))
 			timePoint = time.Now()
+			write = 0
 		}
 	}
 }
