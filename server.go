@@ -17,7 +17,6 @@ func handleConnection(c net.Conn) {
 	start := time.Now()
 	timePoint := time.Now()
 	var totalWrite float64
-	write := 0
 	defer file.Close()
 	defer c.Close()
 	for {
@@ -36,7 +35,6 @@ func handleConnection(c net.Conn) {
 			continue
 		}
 		writeNow, err := file.Write([]byte(append(netData, []byte("\n")...)))
-		write += writeNow
 		totalWrite += float64(writeNow)
 		if err != nil {
 			log.Fatal(err)
@@ -44,8 +42,8 @@ func handleConnection(c net.Conn) {
 		}
 		duration := time.Since(timePoint).Seconds()
 		if duration > 3 {
-			fmt.Printf("Current speed %.1f Mbyte/sec\n", (float64(write)/duration)/(1024*1024))
-			fmt.Printf("Total speed %.1f Mbyte/sec\n", totalWrite/time.Since(start).Seconds()/(1024*1024))
+			fmt.Printf("Current speed %.1f Mbyte/sec\n", (float64(writeNow)/duration)/(1024*1024))
+			fmt.Printf("Average speed %.1f Mbyte/sec\n", totalWrite/time.Since(start).Seconds()/(1024*1024))
 			timePoint = time.Now()
 		}
 	}
