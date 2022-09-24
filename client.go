@@ -3,36 +3,34 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"os"
-	"strings"
 )
 
 func main() {
 	arguments := os.Args
-	if len(arguments) == 1 {
-		fmt.Println("Please provide host:port.")
+	if len(arguments) != 3 {
+		fmt.Println("Please provide host:port filename.")
 		return
 	}
 
 	CONNECT := arguments[1]
+	FILEPATH := arguments[2]
 	c, err := net.Dial("tcp", CONNECT)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	for {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print(">> ")
-		text, _ := reader.ReadString('\n')
-		fmt.Fprintf(c, text+"\n")
-
-		message, _ := bufio.NewReader(c).ReadString('\n')
-		fmt.Print("->: " + message)
-		if strings.TrimSpace(string(text)) == "STOP" {
-			fmt.Println("TCP client exiting...")
-			return
-		}
+	file, _ := os.Open(FILEPATH)
+	fmt.Fprintf(c, file.Name()+"\n")
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	written, err := io.Copy(c, reader)
+	if err != nil {
+		log.Fatal(err)
 	}
+	fmt.Println(written)
+
 }
